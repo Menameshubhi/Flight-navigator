@@ -1,0 +1,151 @@
+/* Window Seat · pixel game UI (wooden panels, chunky 3D buttons). Fonts are bundled so everything works offline. */
+@font-face { font-family: "PS2P"; src: url("fonts/press-start-2p.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "VT"; src: url("fonts/vt323.woff2") format("woff2"); font-display: swap; }
+
+:root {
+  --ink: #1a1c2c;
+  --wood: #5a3a22; --wood-d: #2a1a0e; --wood-l: #8a5c34; --tan: #c29b6b; --tan-l: #f0dcaf; --cream: #f6ead0;
+  --gold: #f7c860; --cyan: #7fe3ff; --good: #7ee06a; --bad: #ff7b6b; --dim: #c9a98a;
+  --sea: #7ec8e8;
+  --tint: #ffffff;                 /* set by game.js from the sun */
+  --hud: rgba(90, 58, 34, .92);    /* set by game.js: HUD plates follow the time of day */
+  --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ink); color: var(--cream); font: 22px/1.1 "VT", ui-monospace, monospace; overflow: hidden; -webkit-font-smoothing: none; font-smooth: never; touch-action: manipulation; }
+button, input, select { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+/* wooden plate: dark outline with notched corners, light inner line */
+.box, .card { background: var(--hud); color: var(--cream);
+  box-shadow: 0 -3px 0 0 var(--wood-d), 0 3px 0 0 var(--wood-d), -3px 0 0 0 var(--wood-d), 3px 0 0 0 var(--wood-d), inset 0 0 0 2px var(--wood-l), inset 0 -3px 0 0 rgba(0,0,0,.22); }
+
+/* ---------- chunky 3D buttons ---------- */
+.pbtn { --c: #3f78d8; --cd: #2a56a8; --cl: #86adf2; --fg: #fff;
+  font: 11px/1 "PS2P", monospace; background: var(--c); color: var(--fg); border: 0; padding: 15px 18px 14px; margin: 4px 4px 14px; min-height: 46px; cursor: pointer; text-transform: uppercase; text-shadow: 2px 2px 0 rgba(0,0,0,.45);
+  box-shadow: 0 -3px 0 0 var(--wood-d), 3px 0 0 0 var(--wood-d), -3px 0 0 0 var(--wood-d), 0 9px 0 0 var(--cd), 0 12px 0 0 var(--wood-d), inset 0 3px 0 0 var(--cl), inset 0 -3px 0 0 var(--cd); }
+.pbtn:active { transform: translateY(6px); box-shadow: 0 -3px 0 0 var(--wood-d), 3px 0 0 0 var(--wood-d), -3px 0 0 0 var(--wood-d), 0 3px 0 0 var(--cd), 0 6px 0 0 var(--wood-d), inset 0 3px 0 0 var(--cl), inset 0 -3px 0 0 var(--cd); }
+.pbtn.go { --c: #b8433a; --cd: #86302b; --cl: #e08075; }
+.pbtn.y { --c: #f0b24a; --cd: #c98a2a; --cl: #ffd98a; --fg: #3a2412; text-shadow: none; }
+.pbtn.blue { --c: #3f78d8; }
+.pbtn.wide { width: calc(100% - 8px); }
+.pbtn.sq { width: 50px; height: 50px; padding: 0 0 2px; font-size: 16px; margin: 0 0 12px; }
+.pbtn.mini { min-height: 28px; padding: 9px 10px 8px; font-size: 9px; margin: 0 0 8px; }
+.pbtn.red, .close { --c: #b8433a; --cd: #86302b; --cl: #e08075; }
+.pbtn:focus-visible, input:focus-visible, select:focus-visible { outline: 4px solid var(--cyan); outline-offset: 3px; }
+
+/* ---------- form screen ---------- */
+.screen { position: fixed; inset: 0; overflow-y: auto; padding: calc(24px + var(--safe-t)) 16px calc(40px + var(--safe-b)); -webkit-overflow-scrolling: touch;
+  background: repeating-linear-gradient(0deg, transparent 0 30px, rgba(255,255,255,.16) 30px 34px), repeating-linear-gradient(90deg, transparent 0 60px, rgba(255,255,255,.07) 60px 64px), var(--sea); }
+.screen[hidden] { display: none; }
+.sky { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.cl { position: absolute; left: -140px; width: 112px; height: 32px; background: #fff; opacity: .92;
+  clip-path: polygon(0 100%, 0 60%, 8px 60%, 8px 40%, 24px 40%, 24px 20%, 40px 20%, 40px 0, 72px 0, 72px 20%, 88px 20%, 88px 40%, 104px 40%, 104px 60%, 112px 60%, 112px 100%);
+  animation: drift 60s linear infinite; }
+.c1 { top: 12%; animation-duration: 70s; } .c2 { top: 46%; width: 80px; opacity: .75; animation-duration: 50s; animation-delay: -20s; } .c3 { top: 80%; animation-duration: 90s; animation-delay: -45s; }
+@keyframes drift { to { transform: translateX(calc(100vw + 300px)); } }
+/* floating grass islands with a soil edge and a tree */
+.isle { position: absolute; width: var(--w, 150px); height: calc(var(--w, 150px) * .6); background: #4f8f3a; box-shadow: 0 0 0 4px #2f5a2a, 0 4px 0 4px #2f5a2a; animation: bob 4s steps(2) infinite; }
+.isle::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 22px; background: repeating-linear-gradient(90deg, #7a5230 0 12px, #6a4426 12px 24px); box-shadow: 0 0 0 4px #2f2014; }
+.isle::before { content: ""; position: absolute; left: 62%; top: 12%; width: 34px; height: 34px; background: #3b7d3a; clip-path: polygon(30% 0, 70% 0, 70% 15%, 100% 15%, 100% 70%, 70% 70%, 70% 100%, 30% 100%, 30% 70%, 0 70%, 0 15%, 30% 15%); }
+.i1 { --w: 150px; left: -30px; top: 16%; } .i2 { --w: 110px; right: -24px; top: 38%; animation-delay: -1s; } .i3 { --w: 130px; left: 4%; bottom: 14%; animation-delay: -2s; } .i4 { --w: 90px; right: 8%; bottom: 8%; animation-delay: -3s; }
+@keyframes bob { 50% { transform: translateY(6px); } }
+#fly-plane { position: absolute; left: -100px; top: 30%; width: 75px; height: 66px; transform: rotate(90deg); animation: fly 14s steps(60) infinite; filter: drop-shadow(10px 14px 0 rgba(10,40,80,.25)); }
+@keyframes fly { to { left: calc(100vw + 100px); } }
+
+.logo { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 4px 0 6px; }
+#logo-plane { width: 75px; height: 66px; flex: none; }
+.logo h1 { margin: 0; display: grid; gap: 6px; font: 22px/1 "PS2P", monospace; }
+.logo h1 span { display: block; padding: 9px 14px 8px; color: var(--gold); text-shadow: 3px 3px 0 var(--wood-d); background: linear-gradient(#a06b3b 0 30%, #7b5231 30%);
+  box-shadow: 0 -3px 0 0 var(--wood-d), 0 3px 0 0 var(--wood-d), -3px 0 0 0 var(--wood-d), 3px 0 0 0 var(--wood-d), inset 0 -4px 0 0 rgba(0,0,0,.25); }
+.logo h1 span + span { margin-left: 14px; }
+
+/* tan wooden form panel with a double border */
+.panel { position: relative; z-index: 1; max-width: 560px; margin: 14px auto 0; padding: 26px 22px 20px; display: grid; gap: 14px; background: var(--tan); color: #3a2412;
+  box-shadow: 0 -6px 0 0 #7b5231, 0 6px 0 0 #7b5231, -6px 0 0 0 #7b5231, 6px 0 0 0 #7b5231, 0 -9px 0 0 var(--wood-d), 0 9px 0 0 var(--wood-d), -9px 0 0 0 var(--wood-d), 9px 0 0 0 var(--wood-d); }
+.panel::before { content: ""; position: absolute; inset: 9px; border: 3px solid var(--tan-l); pointer-events: none; }
+.lead { margin: 0; text-align: center; color: #86302b; font: 10px/1.6 "PS2P", monospace; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 440px) { .row2 { grid-template-columns: 1fr; } .logo h1 { font-size: 17px; } #logo-plane { width: 50px; height: 44px; } }
+label { display: block; font: 9px/1.4 "PS2P", monospace; color: #4a2f18; min-width: 0; }
+label small { color: #7b5a3a; font-size: 8px; }
+label > input, label > select { display: block; margin-top: 10px; }
+input:not([type=range]):not([type=checkbox]), select { width: 100%; min-height: 46px; padding: 8px 12px; background: var(--cream); color: #2a1a0e; border: 0; border-radius: 0; font: 24px/1 "VT", monospace; text-transform: uppercase; color-scheme: light;
+  box-shadow: 0 -3px 0 0 #7b5231, 0 3px 0 0 #7b5231, -3px 0 0 0 #7b5231, 3px 0 0 0 #7b5231, inset 0 3px 0 0 rgba(0,0,0,.14); margin: 4px 0; }
+input:focus, select:focus { box-shadow: 0 -3px 0 0 #3f78d8, 0 3px 0 0 #3f78d8, -3px 0 0 0 #3f78d8, 3px 0 0 0 #3f78d8, inset 0 3px 0 0 rgba(0,0,0,.14); outline: none; }
+input::placeholder { color: #a58a66; }
+.check { display: flex; align-items: center; gap: 12px; color: #4a2f18; font-size: 8px; line-height: 1.6; cursor: pointer; }
+.check input { width: 24px; height: 24px; margin: 0; accent-color: #b8433a; flex: none; }
+.err { margin: 0; color: #a3261c; font: 9px/1.6 "PS2P", monospace; }
+.actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+h2 { font: 10px/1.4 "PS2P", monospace; color: #4a2f18; margin: 4px 0 8px; }
+.note { margin: 0; color: #5a3a22; font-size: 20px; line-height: 1.15; }
+.saved { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 8px 4px; background: #e4cc9a; cursor: pointer; color: #2a1a0e; box-shadow: 0 -3px 0 0 #7b5231, 0 3px 0 0 #7b5231, -3px 0 0 0 #7b5231, 3px 0 0 0 #7b5231; }
+.saved .t { flex: 1; min-width: 0; } .saved b { font: 10px/1.4 "PS2P", monospace; display: block; } .saved small { color: #5a3a22; font-size: 20px; }
+.saved .x { background: none; border: 0; color: #a3261c; font: 14px "PS2P"; min-width: 44px; min-height: 44px; cursor: pointer; }
+
+/* ---------- game ---------- */
+#game { position: fixed; inset: 0; overflow: hidden; background: #000; }
+#view { position: absolute; left: 0; top: 0; touch-action: none; }
+#tags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.tag, .rt { position: absolute; background: rgba(42,26,14,.88); color: var(--cream); font: 8px/1 "PS2P", monospace; padding: 4px 5px 3px; white-space: nowrap; }
+.tag { transform: translate(-50%, 0); pointer-events: auto; cursor: pointer; box-shadow: 0 -2px 0 0 var(--tc, var(--gold)), 0 2px 0 0 var(--tc, var(--gold)), -2px 0 0 0 var(--tc, var(--gold)), 2px 0 0 0 var(--tc, var(--gold)); }
+.rt { transform: translate(0, -50%); pointer-events: auto; cursor: pointer; color: var(--gold); background: rgba(42,26,14,.8); }
+.rt.l { transform: translate(-100%, -50%); }
+.rt.near { color: var(--good); } .rt.dest { color: var(--cyan); }
+
+.hud { position: absolute; z-index: 5; pointer-events: none; }
+.hud .box, .hud button { pointer-events: auto; }
+.hud .box, #warp, #compass { font: 10px/1 "PS2P", monospace; }
+.hud.top { top: calc(10px + var(--safe-t)); left: 10px; right: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+.hud.top .box { padding: 9px 10px; display: flex; align-items: center; gap: 8px; min-height: 34px; }
+#hud-flight b { color: var(--gold); }
+#hud-status { flex: 1; min-width: 0; color: var(--cyan); } #h-phase { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sky-box small { color: var(--dim); font-size: 9px; }
+.sun-dot { width: 14px; height: 14px; background: var(--gold); box-shadow: 0 0 0 3px #fff3; flex: none; }
+.hud.stats { top: calc(62px + var(--safe-t)); left: 10px; right: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 520px; }
+.hud.stats .box { padding: 8px 8px 7px; display: grid; gap: 6px; }
+.hud.stats small { color: var(--dim); font-size: 8px; } .hud.stats b { font-size: 11px; color: var(--cream); white-space: nowrap; }
+@media (min-width: 900px) { .hud.top { right: auto; } .hud.top #hud-status { min-width: 280px; } .hud.stats { top: calc(70px + var(--safe-t)); } }
+
+#compass { position: absolute; z-index: 5; right: 14px; top: calc(66px + var(--safe-t)); width: 44px; height: 44px; display: grid; place-items: center; }
+#compass i { font-size: 0; display: block; width: 36px; height: 36px; position: relative; }
+#compass i::before { content: ""; position: absolute; left: 50%; top: 0; margin-left: -8px; border: 8px solid transparent; border-bottom: 14px solid var(--bad); border-top: 0; }
+#compass i::after { content: ""; position: absolute; left: 50%; top: 14px; width: 4px; height: 20px; margin-left: -2px; background: var(--cream); }
+#compass::after { content: "N"; position: absolute; left: 50%; top: -14px; transform: translateX(-50%); font: 8px "PS2P", monospace; color: var(--bad); }
+
+/* progress plate that rides under the plane's tail */
+#prog { position: absolute; z-index: 4; transform: translate(-50%, 0); display: flex; align-items: center; gap: 6px; padding: 5px 7px; background: rgba(42,26,14,.88); font: 8px/1 "PS2P", monospace; color: var(--cream); pointer-events: none;
+  box-shadow: 0 -2px 0 0 var(--wood-l), 0 2px 0 0 var(--wood-l), -2px 0 0 0 var(--wood-l), 2px 0 0 0 var(--wood-l); }
+#prog .pbar { width: 64px; height: 8px; background: #20140a; box-shadow: 0 0 0 2px var(--wood-l); } #prog .pbar i { display: block; height: 100%; width: 0; background: var(--good); }
+#prog-b { color: var(--gold); }
+
+.hud.tools { right: 12px; bottom: calc(14px + var(--safe-b)); display: grid; gap: 6px; }
+#warp { position: absolute; z-index: 6; left: 12px; right: 84px; bottom: calc(18px + var(--safe-b)); max-width: 460px; padding: 10px 12px 8px; }
+.warp-head { display: flex; align-items: center; gap: 8px; font-size: 9px; } .warp-head b { color: var(--gold); }
+#warp-lbl { flex: 1; text-align: right; color: var(--cream); font: 8px/1.3 "PS2P", monospace; }
+#warp input[type=range] { width: 100%; height: 36px; margin: 4px 0 0; accent-color: var(--gold); }
+
+/* ---------- sight card ---------- */
+.card-wrap { position: fixed; inset: 0; z-index: 30; display: grid; place-items: end center; padding: 16px 16px calc(24px + var(--safe-b)); background: rgba(20, 12, 6, .5); }
+@media (min-width: 700px) { .card-wrap { place-items: center; } }
+.card { position: relative; width: min(440px, 100%); padding: 18px 16px 14px; background: #6b4528; }
+.card .close { position: absolute; right: 10px; top: 8px; margin: 0; }
+.c-head { display: flex; gap: 12px; align-items: center; padding-right: 48px; }
+#c-icon { width: 48px; height: 48px; flex: none; background: rgba(0,0,0,.28); }
+.card h3 { margin: 0 0 6px; font: 12px/1.4 "PS2P", monospace; color: var(--gold); } .card small { color: var(--cyan); font: 8px "PS2P", monospace; }
+#c-note { font-size: 24px; line-height: 1.1; margin: 12px 0; color: var(--cream); }
+#c-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
+#c-facts div { background: rgba(0,0,0,.26); padding: 8px; } #c-facts dt { font: 8px "PS2P", monospace; color: var(--dim); margin-bottom: 6px; } #c-facts dd { margin: 0; font: 11px/1.3 "PS2P", monospace; color: var(--cream); }
+
+#intro { position: fixed; left: 0; top: 0; z-index: 50; }
+
+@media (prefers-reduced-motion: reduce) { .cl, #fly-plane, .isle { animation: none; } }
+
+/* phone layout (placed last so it overrides the base positions) */
+@media (max-width: 899px) {
+  #hud-status { order: 3; flex: 1 1 100%; } .sky-box { margin-left: auto; }
+  .hud.stats { top: calc(94px + var(--safe-t)); }
+  #compass { top: calc(150px + var(--safe-t)); }
+}

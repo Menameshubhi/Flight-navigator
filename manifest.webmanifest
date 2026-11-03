@@ -1,0 +1,9 @@
+{
+  "name": "Window Seat — in-flight sight guide",
+  "short_name": "Window Seat",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1c2c",
+  "theme_color": "#1a1c2c",
+  "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

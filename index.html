@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1a1c2c">
+<title>Window Seat</title>
+<meta name="description" content="Offline pixel-game guide to the hills, rivers and monuments you fly over.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon.svg">
+<link rel="preload" href="fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/vt323.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="game.css">
+</head>
+<body>
+
+<!-- ============ GAME ============ -->
+<div id="game" hidden>
+  <canvas id="view" aria-label="Top-down view of the plane and the sights around it"></canvas>
+  <div id="tags"></div>
+
+  <header class="hud top">
+    <div class="box" id="hud-flight"><b id="h-num">—</b><span id="h-route">—</span></div>
+    <div class="box" id="hud-status"><span id="h-phase">—</span></div>
+    <div class="box sky-box"><i class="sun-dot" id="h-sun"></i><span id="h-tod">DAY</span><small id="h-clock">--:--</small></div>
+  </header>
+  <div class="hud stats">
+    <div class="box"><small>ALT</small><b id="h-alt">—</b></div>
+    <div class="box"><small>SPD</small><b id="h-spd">—</b></div>
+    <div class="box"><small>HDG</small><b id="h-hdg">—</b></div>
+    <div class="box"><small>DONE</small><b id="h-pct">—</b></div>
+  </div>
+  <div id="compass" class="box" aria-label="North marker"><i id="compass-n">N</i></div>
+
+  <div id="prog" aria-label="Flight progress"><span id="prog-a">DEL</span><div class="pbar"><i id="prog-fill"></i></div><span id="prog-b">KTM</span></div>
+
+  <div class="hud tools">
+    <button class="pbtn sq" id="zoom-in" aria-label="Zoom in">+</button>
+    <button class="pbtn sq" id="zoom-out" aria-label="Zoom out">-</button>
+    <button class="pbtn sq" id="warp-btn" aria-label="Time travel">T</button>
+    <button class="pbtn sq" id="menu-btn" aria-label="Flight details">=</button>
+  </div>
+
+  <div id="warp" class="box" hidden>
+    <div class="warp-head"><b>TIME TRAVEL</b><span id="warp-lbl"></span><button class="pbtn mini" id="warp-live">LIVE</button></div>
+    <input id="warp-range" type="range" min="-30" max="600" step="1" value="0" aria-label="Minutes into the flight">
+  </div>
+</div>
+
+<!-- ============ FORM ============ -->
+<main id="menu" class="screen">
+  <div class="sky" aria-hidden="true"><i class="isle i1"></i><i class="isle i2"></i><i class="isle i3"></i><i class="isle i4"></i><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i><canvas id="fly-plane"></canvas></div>
+  <form id="form" class="panel" autocomplete="off">
+    <div class="logo"><canvas id="logo-plane" aria-hidden="true"></canvas><h1><span>WINDOW</span><span>SEAT</span></h1></div>
+    <p class="lead">PLAYER 1 · ENTER YOUR FLIGHT</p>
+    <button id="back" class="pbtn wide blue" type="button" hidden>CONTINUE FLIGHT</button>
+    <div class="row2">
+      <label>FLIGHT NO.<input id="f-num" placeholder="AI 2401" maxlength="10" autocapitalize="characters"></label>
+      <label>PNR <small>(NOTE ONLY)</small><input id="f-pnr" placeholder="X7K2QP" maxlength="10" autocapitalize="characters"></label>
+    </div>
+    <div class="row2">
+      <label>FROM<input id="f-from" list="ap-list" placeholder="DEL" required></label>
+      <label>TO<input id="f-to" list="ap-list" placeholder="KTM" required></label>
+    </div>
+    <datalist id="ap-list"></datalist>
+    <div class="row2">
+      <label>DEPARTURE<input id="f-dep" type="datetime-local" required></label>
+      <label>TAXI <small>(MIN)</small><input id="f-taxi" type="number" min="0" max="90" value="15"></label>
+    </div>
+    <div class="row2">
+      <label>FLIGHT TIME <small>(MIN, OPT.)</small><input id="f-dur" type="number" min="20" max="1200" placeholder="AUTO"></label>
+      <label>SKY<select id="f-vis"><option value="1">CRYSTAL CLEAR</option><option value="0.75" selected>MOSTLY CLEAR</option><option value="0.5">HAZY</option></select></label>
+    </div>
+    <label class="check"><input type="checkbox" id="f-gps"><span>USE PHONE GPS IF IT HAS A FIX</span></label>
+    <p id="form-err" class="err" hidden></p>
+    <div class="actions">
+      <button class="pbtn go" type="submit">START</button>
+      <button class="pbtn y" type="button" id="demo">DEMO: DEL > KTM</button>
+    </div>
+    <div id="saved-wrap" hidden><h2>SAVED FLIGHTS</h2><div id="saved"></div></div>
+    <p class="note">A PNR lives on the airline's servers and cannot be read offline, so it is just a note. The plane's place is worked out from the route and the clock. No signal needed after this screen.</p>
+  </form>
+</main>
+
+<canvas id="intro" hidden aria-hidden="true"></canvas>
+
+<div id="card" class="card-wrap" hidden>
+  <div class="card box" role="dialog" aria-labelledby="c-name">
+    <button class="pbtn mini close" id="c-close" aria-label="Close">X</button>
+    <div class="c-head"><canvas id="c-icon" width="12" height="12"></canvas><div><h3 id="c-name"></h3><small id="c-type"></small></div></div>
+    <p id="c-note"></p>
+    <dl id="c-facts"></dl>
+  </div>
+</div>
+
+<script src="data/airports.js"></script>
+<script src="data/landmarks.js"></script>
+<script src="data/geodata.js"></script>
+<script src="geo.js"></script>
+<script src="sprites.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
