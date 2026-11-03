@@ -149,3 +149,32 @@ h2 { font: 10px/1.4 "PS2P", monospace; color: #4a2f18; margin: 4px 0 8px; }
   .hud.stats { top: calc(94px + var(--safe-t)); }
   #compass { top: calc(150px + var(--safe-t)); }
 }
+
+/* hover tooltip (mouse only) */
+#hover { position: absolute; z-index: 6; pointer-events: none; background: rgba(42,26,14,.94); color: var(--cream); padding: 7px 9px 6px; font: 8px/1.5 "PS2P", monospace; white-space: nowrap; box-shadow: 0 -2px 0 0 var(--gold), 0 2px 0 0 var(--gold), -2px 0 0 0 var(--gold), 2px 0 0 0 var(--gold); }
+#hover b { display: block; color: var(--gold); font-weight: normal; }
+#hover small { font: 15px/1 "VT", monospace; color: #e8d3a8; }
+
+/* sight card: write-up, photos, relevance */
+#c-note { font-size: 24px; line-height: 1.1; margin: 12px 0 10px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.card { max-height: calc(100dvh - 32px); overflow-y: auto; }
+#c-shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 6px 4px 14px; }
+#c-shots .shot { padding: 0; border: 0; cursor: pointer; aspect-ratio: 4 / 3; background: #2a1a0e; position: relative;
+  box-shadow: 0 -3px 0 0 #2a1a0e, 0 3px 0 0 #2a1a0e, -3px 0 0 0 #2a1a0e, 3px 0 0 0 #2a1a0e, 0 -6px 0 0 #c99a50, 0 6px 0 0 #c99a50, -6px 0 0 0 #c99a50, 6px 0 0 0 #c99a50; }
+#c-shots .shot img { width: 100%; height: 100%; object-fit: cover; display: block; image-rendering: auto; }
+#c-shots .shot:hover, #c-shots .shot:focus-visible { outline: 0; box-shadow: 0 -3px 0 0 #2a1a0e, 0 3px 0 0 #2a1a0e, -3px 0 0 0 #2a1a0e, 3px 0 0 0 #2a1a0e, 0 -6px 0 0 var(--gold), 0 6px 0 0 var(--gold), -6px 0 0 0 var(--gold), 6px 0 0 0 var(--gold); }
+#c-shots .msg { grid-column: 1 / -1; font: 8px/1.6 "PS2P", monospace; color: var(--dim); padding: 8px 0; }
+.c-block { margin: 0 0 12px; } .c-block h4 { margin: 0 0 6px; font: 8px "PS2P", monospace; color: var(--cyan); font-weight: normal; }
+.c-block p { margin: 0; font-size: 22px; line-height: 1.1; color: var(--cream); }
+#c-src { display: inline-block; margin-top: 12px; font: 8px "PS2P", monospace; color: var(--dim); text-decoration: none; } #c-src:hover { color: var(--gold); }
+
+/* photo viewer: the photo stays sharp, the frame is pixel art */
+#shot { z-index: 40; background: rgba(20, 12, 6, .82); place-items: center; }
+.shot-frame { position: relative; width: min(760px, 100%); padding: 14px 14px 10px; background: #6b4528;
+  box-shadow: 0 -4px 0 0 #2a1a0e, 0 4px 0 0 #2a1a0e, -4px 0 0 0 #2a1a0e, 4px 0 0 0 #2a1a0e, 0 -8px 0 0 #c99a50, 0 8px 0 0 #c99a50, -8px 0 0 0 #c99a50, 8px 0 0 0 #c99a50; }
+.shot-frame .close { position: absolute; right: 8px; top: 8px; margin: 0; z-index: 2; }
+.shot-pic { background: #1a1c2c; box-shadow: 0 0 0 4px #2a1a0e, 0 0 0 6px #f7c860; display: grid; place-items: center; max-height: calc(100dvh - 190px); overflow: hidden; }
+.shot-pic img { max-width: 100%; max-height: calc(100dvh - 190px); display: block; image-rendering: auto; }
+.shot-title { margin: 18px 4px 6px; font: 12px/1.5 "PS2P", monospace; color: var(--gold); text-align: center; text-transform: uppercase; text-shadow: 2px 2px 0 rgba(0,0,0,.45); }
+
+input[type=datetime-local] { font-size: 19px; padding-left: 8px; padding-right: 6px; }

@@ -36,6 +36,60 @@
     return bearing(p, q);
   }
 
+
+  // ---------- Flight path: runway heading out, a turn toward the destination, then lined up with the arrival runway ----------
+  const angDiff = (a, b) => ((b - a + 540) % 360) - 180; // signed shortest turn from a to b
+  function moveTo(p, hdg, km) {
+    const δ = km / R, θ = rad(hdg), φ1 = rad(p.lat), λ1 = rad(p.lon);
+    const φ2 = Math.asin(Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(θ));
+    const λ2 = λ1 + Math.atan2(Math.sin(θ) * Math.sin(δ) * Math.cos(φ1), Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2));
+    return { lat: deg(φ2), lon: ((deg(λ2) + 540) % 360) - 180 };
+  }
+  const closestHeading = (heads, want) => (heads && heads.length ? heads.reduce((b, h) => (Math.abs(angDiff(h, want)) < Math.abs(angDiff(b, want)) ? h : b)) : want);
+  // Fly straight along `hdg` for `straight` km, then turn (at most `turn` deg per km) until pointing at `target`.
+  function leg(start, hdg, straight, target, turn) {
+    const pts = [start], step = 0.5; let p = start, h = hdg, n = 0;
+    for (; n * step < straight; n++) { p = moveTo(p, h, step); pts.push(p); }
+    for (let i = 0; i < 1600; i++) {
+      const want = bearing(p, target), d = angDiff(h, want);
+      if (Math.abs(d) < 1.5) break;
+      h = norm360(h + Math.max(-turn * step, Math.min(turn * step, d))); p = moveTo(p, h, step); pts.push(p);
+    }
+    return pts;
+  }
+  // a, b: { lat, lon, rwys: [runway headings] }. Returns { pts, cum, total, depHdg, arrHdg }.
+  function makePath(a, b) {
+    const D = haversine(a, b), dir = bearing(a, b), arrTrack = norm360(bearing(b, a) + 180);
+    const depHdg = closestHeading(a.rwys, dir), arrHdg = closestHeading(b.rwys, arrTrack); // runway used: the one that needs the smallest turn (wind is unknown)
+    let pts;
+    if (D < 90) pts = [{ lat: a.lat, lon: a.lon }, { lat: b.lat, lon: b.lon }];
+    else {
+      const dep = leg(a, depHdg, Math.min(5, D * 0.06), b, 9);                           // takeoff roll, climb out, turn
+      const arrRev = leg(b, norm360(arrHdg + 180), Math.min(18, D * 0.15), a, 9).reverse(); // final approach, and the turn onto it
+      const s = dep[dep.length - 1], e = arrRev[0], gap = haversine(s, e), k = Math.max(1, Math.ceil(gap / 4));
+      pts = dep.slice(0, -1);
+      for (let i = 0; i <= k; i++) pts.push(gcPoint(s, e, i / k));
+      pts = pts.concat(arrRev.slice(1));
+      if (gap > D || !isFinite(gap)) pts = [{ lat: a.lat, lon: a.lon }, { lat: b.lat, lon: b.lon }]; // the two turns would overlap: fall back to direct
+    }
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + haversine(pts[i - 1], pts[i]));
+    return { pts, cum, total: cum[cum.length - 1], depHdg, arrHdg };
+  }
+  function pathAt(path, s) { // position and track after s km along the path
+    const c = path.cum, n = c.length;
+    s = Math.max(0, Math.min(path.total, s));
+    let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (c[m] <= s) lo = m; else hi = m; }
+    const p = path.pts[lo], q = path.pts[hi], seg = c[hi] - c[lo], f = seg > 0 ? (s - c[lo]) / seg : 0;
+    const pos = seg > 0 ? gcPoint(p, q, f) : { lat: p.lat, lon: p.lon };
+    const i0 = Math.max(0, lo - 1), i1 = Math.min(n - 1, hi + 1);
+    return { lat: pos.lat, lon: pos.lon, track: bearing(path.pts[i0], path.pts[i1]) };
+  }
+  function pathNearest(path, pos) { // km along the path of the point closest to pos (used with GPS)
+    let best = 0, bd = 1e18; const k = Math.cos(rad(pos.lat));
+    for (let i = 0; i < path.pts.length; i++) { const dx = (path.pts[i].lon - pos.lon) * k, dy = path.pts[i].lat - pos.lat, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = i; } }
+    return path.cum[best];
+  }
+
   // ---------- Flight model ----------
   const CRUISE_ALT_KM = 10.7;
   const CRUISE_KMH = 830;
@@ -160,13 +214,13 @@
   }
 
   // Walk the whole route once and find when each sight is closest and whether it's ever visible.
-  function planRoute(landmarks, from, to, profile, vis, stepKm) {
+  function planRoute(landmarks, path, profile, vis, stepKm) {
     const D = profile.distKm, step = stepKm || 5;
     const n = Math.max(2, Math.ceil(D / step));
     const best = new Map();
     for (let i = 0; i <= n; i++) {
       const f = i / n, s = f * D;
-      const p = gcPoint(from, to, f);
+      const p = pathAt(path, s);
       const t = timeAtDist(profile, s), alt = altitudeAt(profile, t);
       for (const lm of landmarks) {
         if (!inBand(p, lm)) continue; // cheap prefilter
@@ -179,14 +233,14 @@
     }
     const list = [];
     for (const b of best.values()) {
-      const track = trackAt(from, to, b.f);
+      const track = pathAt(path, b.s).track;
       const rel = relBearing(track, bearing(b.p, b.loc));
       list.push({ lm: b.lm, dist: b.dist, max: b.max, tMin: b.tMin, alongKm: b.s, rel, side: sideOf(rel), clock: clockOf(rel), alt: b.alt, at: { lat: b.loc.lat, lon: b.loc.lon } });
     }
     return list.sort((a, b) => a.tMin - b.tMin);
   }
 
-  const api = { R, rad, deg, haversine, bearing, gcPoint, trackAt, makeProfile, distAt, timeAtDist, altitudeAt, speedAt,
+  const api = { R, rad, deg, haversine, bearing, gcPoint, trackAt, makePath, pathAt, pathNearest, makeProfile, distAt, timeAtDist, altitudeAt, speedAt,
     maxVisibleKm, locate, relBearing, sideOf, clockOf, toLandmarks, visibleNow, planRoute, CRUISE_ALT_KM, CRUISE_KMH };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Geo = api;
 })(typeof window !== "undefined" ? window : globalThis);

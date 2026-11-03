@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icons/icon.svg">
 <link rel="preload" href="fonts/press-start-2p.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/vt323.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="game.css">
+<link rel="stylesheet" href="game.css?v=22">
 </head>
 <body>
 
@@ -56,49 +56,54 @@
     <p class="lead">PLAYER 1 · ENTER YOUR FLIGHT</p>
     <button id="back" class="pbtn wide blue" type="button" hidden>CONTINUE FLIGHT</button>
     <div class="row2">
-      <label>FLIGHT NO.<input id="f-num" placeholder="AI 2401" maxlength="10" autocapitalize="characters"></label>
-      <label>PNR <small>(NOTE ONLY)</small><input id="f-pnr" placeholder="X7K2QP" maxlength="10" autocapitalize="characters"></label>
-    </div>
-    <div class="row2">
       <label>FROM<input id="f-from" list="ap-list" placeholder="DEL" required></label>
       <label>TO<input id="f-to" list="ap-list" placeholder="KTM" required></label>
     </div>
     <datalist id="ap-list"></datalist>
     <div class="row2">
-      <label>DEPARTURE<input id="f-dep" type="datetime-local" required></label>
-      <label>TAXI <small>(MIN)</small><input id="f-taxi" type="number" min="0" max="90" value="15"></label>
+      <label>DEPARTURE <small>(LOCAL TIME AT FROM)</small><input id="f-dep" type="datetime-local" required></label>
+      <label>ARRIVAL <small>(LOCAL TIME AT TO)</small><input id="f-arr" type="datetime-local" required></label>
     </div>
-    <div class="row2">
-      <label>FLIGHT TIME <small>(MIN, OPT.)</small><input id="f-dur" type="number" min="20" max="1200" placeholder="AUTO"></label>
-      <label>SKY<select id="f-vis"><option value="1">CRYSTAL CLEAR</option><option value="0.75" selected>MOSTLY CLEAR</option><option value="0.5">HAZY</option></select></label>
-    </div>
-    <label class="check"><input type="checkbox" id="f-gps"><span>USE PHONE GPS IF IT HAS A FIX</span></label>
     <p id="form-err" class="err" hidden></p>
     <div class="actions">
       <button class="pbtn go" type="submit">START</button>
       <button class="pbtn y" type="button" id="demo">DEMO: DEL > KTM</button>
     </div>
     <div id="saved-wrap" hidden><h2>SAVED FLIGHTS</h2><div id="saved"></div></div>
-    <p class="note">A PNR lives on the airline's servers and cannot be read offline, so it is just a note. The plane's place is worked out from the route and the clock. No signal needed after this screen.</p>
+    <p class="note">The plane's place is worked out from the route and the clock: it leaves on a runway heading, turns toward the destination and lines up with the arrival runway. No signal needed after this screen.</p>
   </form>
 </main>
 
 <canvas id="intro" hidden aria-hidden="true"></canvas>
+
+<div id="shot" class="card-wrap" hidden>
+  <div class="shot-frame" role="dialog" aria-labelledby="shot-title">
+    <button class="pbtn mini close" id="shot-close" aria-label="Close photo">X</button>
+    <div class="shot-pic"><img id="shot-img" alt=""></div>
+    <div class="shot-title" id="shot-title"></div>
+  </div>
+</div>
 
 <div id="card" class="card-wrap" hidden>
   <div class="card box" role="dialog" aria-labelledby="c-name">
     <button class="pbtn mini close" id="c-close" aria-label="Close">X</button>
     <div class="c-head"><canvas id="c-icon" width="12" height="12"></canvas><div><h3 id="c-name"></h3><small id="c-type"></small></div></div>
     <p id="c-note"></p>
+    <div id="c-shots" hidden></div>
+    <section class="c-block" id="c-why"><h4>RELEVANCE</h4><p></p></section>
+    <section class="c-block" id="c-air"><h4>FROM THE AIR</h4><p></p></section>
     <dl id="c-facts"></dl>
+    <a id="c-src" target="_blank" rel="noopener" hidden>WIKIPEDIA</a>
   </div>
 </div>
 
-<script src="data/airports.js"></script>
-<script src="data/landmarks.js"></script>
-<script src="data/geodata.js"></script>
-<script src="geo.js"></script>
-<script src="sprites.js"></script>
-<script src="game.js"></script>
+<script src="data/airports.js?v=22"></script>
+<script src="data/landmarks.js?v=22"></script>
+<script src="data/geodata.js?v=22"></script>
+<script src="data/land.js?v=22"></script>
+<script src="geo.js?v=22"></script>
+<script src="sprites.js?v=22"></script>
+<script src="info.js?v=22"></script>
+<script src="game.js?v=22"></script>
 </body>
 </html>

@@ -186,6 +186,8 @@
       "kbbBBBBBk",
     ],
     tree: ["nn", "nN", ".b"],
+    hillS: ["..k..", ".kbk.", "kbBBk"],
+    hillSnowS: ["..k..", ".kwk.", "kbBBk"],
   };
 
   const S = {};
